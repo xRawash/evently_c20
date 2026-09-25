@@ -1,7 +1,7 @@
 import 'package:evently_app_abbas/core/extensions/date_time_ex.dart';
 import 'package:evently_app_abbas/core/sources/assets_manager.dart';
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
-import 'package:evently_app_abbas/models/event_mode.dart';
+import 'package:evently_app_abbas/models/event_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

@@ -5,6 +5,7 @@ import 'package:evently_app_abbas/core/widgets/custom_elevted_button.dart';
 import 'package:evently_app_abbas/core/widgets/custom_tab_bar.dart';
 import 'package:evently_app_abbas/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app_abbas/core/widgets/cutom_text_button.dart';
+import 'package:evently_app_abbas/l10n/app_localizations.dart';
 import 'package:evently_app_abbas/models/category_model.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +25,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Add Event")),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.addEvent)),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
         child: Column(
@@ -38,28 +39,28 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 clipBehavior: Clip.hardEdge,
-                child: Image.asset(ImageAssets.meeting),
+                child: Image.asset(ImageAssets.meetingLight),
               ),
             ),
             SizedBox(height: 16),
             CustomTabBar(
-              categories: CategoryModel.categories,
+              categories: CategoryModel.getCategories(context),
               selectedBgColor: ColorsManager.darkBlue,
               selectedFgColor: ColorsManager.white,
               unSelectedBgColor: ColorsManager.white,
               unSelectedFgColor: ColorsManager.black,
             ),
             SizedBox(height: 16),
-            Text("Title", style: Theme.of(context).textTheme.displaySmall),
+            Text(AppLocalizations.of(context)!.title, style: Theme.of(context).textTheme.displaySmall),
             SizedBox(height: 8),
-            CustomTextFormField(hintText: "Event Title"),
+            CustomTextFormField(hintText: AppLocalizations.of(context)!.eventTitle),
             SizedBox(height: 16),
             Text(
-              "Description",
+              AppLocalizations.of(context)!.description,
               style: Theme.of(context).textTheme.displaySmall,
             ),
             SizedBox(height: 8),
-            CustomTextFormField(hintText: "Event Description...", lines: 4),
+            CustomTextFormField(hintText: AppLocalizations.of(context)!.eventDescription, lines: 4),
             SizedBox(height: 16),
             Row(
               children: [
@@ -70,7 +71,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
                 Spacer(),
-                CustomTextButton(text: "Choose Date", onTap: _chooseEventDate),
+                CustomTextButton(text: AppLocalizations.of(context)!.chooseDate, onTap: _chooseEventDate),
               ],
             ),
             SizedBox(height: 16),
@@ -83,12 +84,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
                 Spacer(),
-                CustomTextButton(text: "Choose Time", onTap: _chooseEventTime),
+                CustomTextButton(text: AppLocalizations.of(context)!.chooseTime, onTap: _chooseEventTime),
               ],
             ),
 
             Spacer(),
-            CustomElevatedButton(title: "Add Event", onPress: () {}),
+            CustomElevatedButton(title: AppLocalizations.of(context)!.addEvent, onPress: () {}),
           ],
         ),
       ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class ThemeManager {
   static final ThemeData light = ThemeData(
+    brightness: Brightness.light,
     primaryColor: ColorsManager.darkBlue,
     appBarTheme: AppBarTheme(
       foregroundColor: ColorsManager.black,
@@ -130,6 +131,7 @@ class ThemeManager {
   );
 
   static final ThemeData dark = ThemeData(
+    brightness: Brightness.dark,
     primaryColor: ColorsManager.blue,
     appBarTheme: AppBarTheme(
       foregroundColor: ColorsManager.white,
@@ -141,7 +143,7 @@ class ThemeManager {
         color: ColorsManager.white,
       ),
     ),
-    scaffoldBackgroundColor: ColorsManager.dark,
+    scaffoldBackgroundColor: ColorsManager.bgDark,
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: ColorsManager.dark,
       type: BottomNavigationBarType.fixed,

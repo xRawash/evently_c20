@@ -4,6 +4,7 @@ import 'package:evently_app_abbas/core/sources/validator.dart';
 import 'package:evently_app_abbas/core/widgets/custom_elevted_button.dart';
 import 'package:evently_app_abbas/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app_abbas/core/widgets/cutom_text_button.dart';
+import 'package:evently_app_abbas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -55,28 +56,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Image.asset(ImageAssets.eventlyLogo, color: Theme.of(context).primaryColor,),
                 Text(
-                  "Create your account",
+                  AppLocalizations.of(context)!.createYourAccount,
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 SizedBox(height: 16),
                 CustomTextFormField(
                   validator: Validator.validateName,
                   controller: nameController,
-                  hintText: "Enter ur name",
+                  hintText: AppLocalizations.of(context)!.enterYourName,
                   prefixIcon: Icon(Icons.person),
                 ),
                 SizedBox(height: 16),
                 CustomTextFormField(
                   validator: Validator.validateEmail,
                   controller: emailController,
-                  hintText: "Enter ur email",
+                  hintText: AppLocalizations.of(context)!.enterYourEmail,
                   prefixIcon: Icon(Icons.email),
                 ),
                 SizedBox(height: 16),
                 CustomTextFormField(
                   validator: Validator.validatePassword,
                   controller: passwordController,
-                  hintText: "Enter ur password",
+                  hintText: AppLocalizations.of(context)!.enterYourPassword,
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: Icon(Icons.visibility),
                 ),
@@ -84,29 +85,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 CustomTextFormField(
                   validator: (input) {
                     if (input != passwordController.text) {
-                      return "Password dose not match";
+                      return AppLocalizations.of(context)!.passwordDoesNotMatch;
                     }
                     return null;
                   },
                   controller: passwordConfirmationController,
-                  hintText: "Enter ur password confirmation",
+                  hintText: AppLocalizations.of(context)!.enterYourPasswordConfirmation,
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: Icon(Icons.visibility),
                 ),
 
                 SizedBox(height: 52),
-                CustomElevatedButton(title: "Sign-Up", onPress: _createAccount),
+                CustomElevatedButton(title: AppLocalizations.of(context)!.signUp, onPress: _createAccount),
                 SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Already have an account? ",
+                      AppLocalizations.of(context)!.alreadyHaveAnAccount,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
 
                     CustomTextButton(
-                      text: "Login",
+                      text: AppLocalizations.of(context)!.login,
                       onTap: () {
                         Navigator.pushReplacementNamed(
                           context,

@@ -1,12 +1,16 @@
 import 'package:evently_app_abbas/core/sources/assets_manager.dart';
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
+import 'package:evently_app_abbas/l10n/app_localizations.dart';
+import 'package:evently_app_abbas/providers/config_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Profile extends StatelessWidget {
   const Profile({super.key});
 
   @override
   Widget build(BuildContext context) {
+    ConfigProvider configProvider = Provider.of<ConfigProvider>(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 8),
@@ -21,12 +25,18 @@ class Profile extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 children: [
-                  Text("Dark Mode", style: Theme.of(context).textTheme.labelMedium,),
+                  Text(AppLocalizations.of(context)!.darkMode, style: Theme.of(context).textTheme.labelMedium,),
                   Spacer(),
                   Switch(
-                      activeColor: ColorsManager.darkBlue,
+                      activeColor: ColorsManager.blue,
 
-                      value: false, onChanged: (isDarkEnabled){})
+                      value: configProvider.isDark, onChanged: (isDarkEnabled){
+                        if(isDarkEnabled){
+                          configProvider.changeAppTheme(ThemeMode.dark);
+                        }else{
+                          configProvider.changeAppTheme(ThemeMode.light);
+                        }
+                  })
                 ],
               ),
             )),
@@ -35,16 +45,20 @@ class Profile extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 children: [
-                  Text("Language", style: Theme.of(context).textTheme.labelMedium,),
+                  Text(AppLocalizations.of(context)!.language, style: Theme.of(context).textTheme.labelMedium,),
                   Spacer(),
 
 
                   DropdownButton(
                   icon: Icon(Icons.arrow_forward_ios_outlined),
                     underline: Container(),
-                    items: ["English", "Arabic"].map((val)=>DropdownMenuItem(value: val,child: Text(val))).toList(),
+                    items: [AppLocalizations.of(context)!.english, AppLocalizations.of(context)!.arabic].map((val)=>DropdownMenuItem(value: val,child: Text(val))).toList(),
                     onChanged: (newLang) {
-                      print(newLang)
+                    if (newLang == AppLocalizations.of(context)!.english){
+                      configProvider.changeAppLanguage('en');
+                    } else {
+                      configProvider.changeAppLanguage('ar');
+                    }
 ;                    },
                   )
 
@@ -57,7 +71,7 @@ class Profile extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Text("Logout", style: Theme.of(context).textTheme.labelMedium,),
+                  Text(AppLocalizations.of(context)!.logout, style: Theme.of(context).textTheme.labelMedium,),
                   Spacer(),
 
 

@@ -3,6 +3,7 @@ import 'package:evently_app_abbas/core/sources/routes_manager.dart';
 import 'package:evently_app_abbas/features/main_layout/tabs/fav/fav.dart';
 import 'package:evently_app_abbas/features/main_layout/tabs/home/home.dart';
 import 'package:evently_app_abbas/features/main_layout/tabs/profile/profile.dart';
+import 'package:evently_app_abbas/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class MainLayoutScreen extends StatefulWidget {
@@ -46,9 +47,9 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         currentIndex: tappedIndex,
         onTap: _onTap,
         items: [
-          BottomNavigationBarItem(icon: Icon(tappedIndex == 0 ? Icons.home: Icons.home_outlined), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(tappedIndex == 1 ? Icons.favorite : Icons.favorite_border), label: "Fav"),
-          BottomNavigationBarItem(icon: Icon(tappedIndex == 2? Icons.person_2 : Icons.person_2_outlined), label: "Profile"),
+          BottomNavigationBarItem(icon: Icon(tappedIndex == 0 ? Icons.home: Icons.home_outlined), label: AppLocalizations.of(context)!.home),
+          BottomNavigationBarItem(icon: Icon(tappedIndex == 1 ? Icons.favorite : Icons.favorite_border), label: AppLocalizations.of(context)!.fav),
+          BottomNavigationBarItem(icon: Icon(tappedIndex == 2? Icons.person_2 : Icons.person_2_outlined), label: AppLocalizations.of(context)!.profile),
         ]);
   }
 }

@@ -1,7 +1,9 @@
 import 'package:evently_app_abbas/core/sources/assets_manager.dart';
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
+import 'package:evently_app_abbas/core/sources/routes_manager.dart';
 import 'package:evently_app_abbas/l10n/app_localizations.dart';
 import 'package:evently_app_abbas/providers/config_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -69,16 +71,22 @@ class Profile extends StatelessWidget {
             SizedBox(height: 16,),
             Card(child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Text(AppLocalizations.of(context)!.logout, style: Theme.of(context).textTheme.labelMedium,),
-                  Spacer(),
+              child: InkWell(
+                onTap: (){
+                  FirebaseAuth.instance.signOut();
+                  Navigator.pushReplacementNamed(context, RoutesManager.login);
+                },
+                child: Row(
+                  children: [
+                    Text(AppLocalizations.of(context)!.logout, style: Theme.of(context).textTheme.labelMedium,),
+                    Spacer(),
 
 
-                Icon(Icons.logout)
+                  Icon(Icons.logout)
 
 
-                ],
+                  ],
+                ),
               ),
             )),
           ],

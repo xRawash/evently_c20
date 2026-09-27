@@ -12,4 +12,7 @@ class ImageAssets{
   static const String bookClubDark = "${base}Book Club_dark.png";
   static const String birthdayDark = "${base}Birthday_dark.png";
   static const String exhibitionDark = "${base}Exhibition_dark.png";
+  static const String googleDark = "${base}googleDark.png";
+
+
 }

@@ -108,7 +108,7 @@ class ThemeManager {
       ),
       labelLarge: TextStyle(
         fontSize: 20,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
         color: ColorsManager.black,
       ),
       headlineMedium: TextStyle(
@@ -121,12 +121,22 @@ class ThemeManager {
         fontWeight: FontWeight.w500,
         color: ColorsManager.darkGrey,
       ),
-      labelMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      labelMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500,),
       displaySmall: TextStyle(
         color: ColorsManager.black,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
+      displayMedium: TextStyle(
+        color: ColorsManager.darkGrey,
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+      ),
+      displayLarge: TextStyle(
+        color: ColorsManager.blue,
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
+    ),
     ),
   );
 
@@ -135,7 +145,7 @@ class ThemeManager {
     primaryColor: ColorsManager.blue,
     appBarTheme: AppBarTheme(
       foregroundColor: ColorsManager.white,
-      backgroundColor: ColorsManager.dark,
+      backgroundColor: ColorsManager.bgDark,
       centerTitle: true,
       titleTextStyle: TextStyle(
         fontSize: 18,
@@ -250,6 +260,16 @@ class ThemeManager {
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: ColorsManager.grey,
+      ),
+      displayMedium: TextStyle(
+        color: ColorsManager.grey,
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+      ),
+      displayLarge: TextStyle(
+        color: ColorsManager.blue,
+        fontSize: 18,
+        fontWeight: FontWeight.w500,
       ),
 
       labelMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: ColorsManager.white),

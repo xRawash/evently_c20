@@ -13,6 +13,15 @@ class ImageAssets{
   static const String birthdayDark = "${base}Birthday_dark.png";
   static const String exhibitionDark = "${base}Exhibition_dark.png";
   static const String googleDark = "${base}googleDark.png";
+  static const String onboarding1 = "${base}onboarding1.png";
+  static const String onboarding2 = "${base}onboarding2.png";
+  static const String onboarding3 = "${base}onboarding3.png";
+  static const String onboarding4 = "${base}onboarding4.png";
+  static const String onboardingDark1 = "${base}onboardingDark1.png";
+  static const String onboardingDark2 = "${base}onboardingDark2.png";
+  static const String onboardingDark3 = "${base}onboardingDark3.png";
+  static const String onboardingDark4 = "${base}onboardingDark4.png";
+
 
 
 }

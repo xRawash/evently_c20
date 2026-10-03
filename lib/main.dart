@@ -14,6 +14,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await PrefsManager.init();
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => ConfigProvider(),
@@ -24,13 +25,13 @@ void main() async {
 
 class Evently extends StatelessWidget {
   const Evently({super.key});
-
   @override
   Widget build(BuildContext context) {
+    final isFinishedOnBoarding = PrefsManager.getFinishedOnBoarding() ?? false;
     ConfigProvider configProvider = Provider.of<ConfigProvider>(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: RoutesManager.register,
+      initialRoute: isFinishedOnBoarding ? RoutesManager.register : RoutesManager.onboarding,
       onGenerateRoute: RoutesManager.getRoute,
       theme: ThemeManager.light,
       darkTheme: ThemeManager.dark,

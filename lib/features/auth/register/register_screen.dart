@@ -6,6 +6,7 @@ import 'package:evently_app_abbas/core/widgets/custom_elevted_button.dart';
 import 'package:evently_app_abbas/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app_abbas/core/widgets/cutom_text_button.dart';
 import 'package:evently_app_abbas/l10n/app_localizations.dart';
+import 'package:evently_app_abbas/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -62,16 +63,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   Image.asset(
                     ImageAssets.eventlyLogo,
-                    color: Theme
-                        .of(context)
-                        .primaryColor,
+                    color: Theme.of(context).primaryColor,
                   ),
                   Text(
                     AppLocalizations.of(context)!.createYourAccount,
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .headlineLarge,
+                    style: Theme.of(context).textTheme.headlineLarge,
                   ),
                   SizedBox(height: 16),
                   CustomTextFormField(
@@ -94,13 +90,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     isObscured: true,
                     hintText: AppLocalizations.of(context)!.enterYourPassword,
                     prefixIcon: Icon(Icons.lock),
-
                   ),
                   SizedBox(height: 16),
                   CustomTextFormField(
                     validator: (input) {
                       if (input != passwordController.text) {
-                        return AppLocalizations.of(context)!.passwordDoesNotMatch;
+                        return AppLocalizations.of(
+                          context,
+                        )!.passwordDoesNotMatch;
                       }
                       return null;
                     },
@@ -111,7 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     isObscured: true,
                     prefixIcon: Icon(Icons.lock),
                   ),
-              
+
                   SizedBox(height: 52),
                   CustomElevatedButton(
                     title: AppLocalizations.of(context)!.signUp,
@@ -123,12 +120,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       Text(
                         AppLocalizations.of(context)!.alreadyHaveAnAccount,
-                        style: Theme
-                            .of(context)
-                            .textTheme
-                            .bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-              
+
                       CustomTextButton(
                         text: AppLocalizations.of(context)!.login,
                         onTap: () {
@@ -140,25 +134,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 25,),
+                  SizedBox(height: 25),
                   OutlinedButton(
                     onPressed: () {
-                      _loginWithGoogle();
+                      _signUpWithGoogle();
                     },
                     style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: ColorsManager.darkBlue),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: EdgeInsets.all(10)
+                      side: BorderSide(color: ColorsManager.darkBlue),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: EdgeInsets.all(10),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(ImageAssets.googleDark),
                         SizedBox(width: 24),
-                        Text("SignUp With Google",
-                          style: TextStyle(color: ColorsManager.blue),),
+                        Text(
+                          "SignUp With Google",
+                          style: TextStyle(color: ColorsManager.blue),
+                        ),
                       ],
                     ),
                   ),
@@ -176,81 +172,103 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
+            email: emailController.text,
+            password: passwordController.text,
+          );
       Navigator.pushReplacementNamed(context, RoutesManager.login);
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        Fluttertoast.showToast(
-          msg: "Email already used",
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-          fontSize: 16,
-        );
-      } else if (e.code == 'weak-password') {
-        Fluttertoast.showToast(
-          msg: "Password is too weak",
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-          fontSize: 16,
-        );
+      switch (e.code) {
+        case 'email-already-in-use':
+          _showToast('Email already used');
+          break;
+        case 'weak-password':
+          _showToast('Password is too weak');
+          break;
+        case 'invalid-email':
+          _showToast('Invalid email address');
+          break;
+        case 'network-request-failed':
+          _showToast('Network error. Check your connection.');
+          break;
+        default:
+          _showToast('Sign up failed. Please try again.');
       }
+    } on FirebaseException {
+      _showToast('Could not save your profile. Please try again.');
+    } catch (e) {
+      _showToast('Something went wrong. Please try again.');
     }
   }
 
+  void _showToast(String msg) {
+    Fluttertoast.showToast(
+      msg: msg,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.grey,
+      textColor: Colors.white,
+      fontSize: 16,
+    );
+  }
 
-  Future<UserCredential?> _loginWithGoogle() async {
-    try{
+  Future<UserCredential?> _signUpWithGoogle() async {
+    try {
       await GoogleSignIn.instance.initialize(
-          serverClientId: '249340315739-m3ff47n74k3da51lumklbin7vgeg5bjc.apps.googleusercontent.com'
+        serverClientId:
+            '249340315739-m3ff47n74k3da51lumklbin7vgeg5bjc.apps.googleusercontent.com',
       );
-
-      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
-
-
+      final GoogleSignInAccount googleUser = await GoogleSignIn.instance
+          .authenticate();
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-
-
       final AuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
       );
 
-      Navigator.pushReplacementNamed(context, RoutesManager.login);
-      return await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+      if (!mounted) return userCredential;
+      final isNewUser = userCredential.additionalUserInfo!.isNewUser ?? false;
+      if(isNewUser) {
+        _showToast('Account created successfully.');
+        Navigator.pushReplacementNamed(context, RoutesManager.login);
+        return userCredential;
+      }else {
+        _showToast('Welcome back!');
+        Navigator.pushReplacementNamed(context, RoutesManager.mainLayout);
+        return userCredential;
+      }
+
     } on GoogleSignInException catch (e) {
       switch (e.code) {
         case GoogleSignInExceptionCode.canceled:
-          debugPrint('Sign-in cancelled by user');
+          _showToast('Sign-up cancelled');
           break;
         default:
-          debugPrint('GoogleSignInException: ${e.code} - ${e.description}');
+          _showToast('Google sign-up failed. Please try again.');
       }
       return null;
-
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'account-exists-with-different-credential':
-          debugPrint('Account exists with a different sign-in method.');
+          _showToast(
+            'An account already exists with a different sign-in method.',
+          );
           break;
         case 'invalid-credential':
-          debugPrint('The Google credential is malformed or expired.');
+          _showToast('The Google credential is invalid or expired.');
           break;
         case 'user-disabled':
-          debugPrint('This user account has been disabled.');
+          _showToast('This account has been disabled.');
           break;
         case 'network-request-failed':
-          debugPrint('Network error — check your connection.');
+          _showToast('Network error. Check your connection.');
           break;
         default:
-          debugPrint('FirebaseAuthException: ${e.code} - ${e.message}');
+          _showToast('Sign-in failed. Please try again.');
       }
       return null;
-
     } catch (e) {
-      debugPrint('Unexpected error during Google sign-in: $e');
+      _showToast('Something went wrong. Please try again.');
       return null;
     }
   }

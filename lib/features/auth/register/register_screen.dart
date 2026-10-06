@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../../firebase_services/firebase_services.dart';
+
 class RegisterScreen extends StatefulWidget {
   RegisterScreen({super.key});
 
@@ -175,6 +177,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             email: emailController.text,
             password: passwordController.text,
           );
+      UserModel user = UserModel(name: nameController.text, id: userCredential.user!.uid, email: emailController.text);
+      await FirebaseServices.addUserToFireStore(user);
       Navigator.pushReplacementNamed(context, RoutesManager.login);
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
@@ -226,6 +230,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final userCredential = await FirebaseAuth.instance.signInWithCredential(
         credential,
       );
+      UserModel user = UserModel(name: googleUser.displayName!, id: userCredential.user!.uid, email: googleUser.email);
+      await FirebaseServices.addUserToFireStore(user);
       if (!mounted) return userCredential;
       final isNewUser = userCredential.additionalUserInfo!.isNewUser ?? false;
       if(isNewUser) {

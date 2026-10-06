@@ -2,6 +2,9 @@ import 'package:evently_app_abbas/config/theme/theme_manager.dart';
 import 'package:evently_app_abbas/core/sources/routes_manager.dart';
 import 'package:evently_app_abbas/features/auth/login/login_screen.dart';
 import 'package:evently_app_abbas/features/auth/register/register_screen.dart';
+import 'package:evently_app_abbas/firebase_services/firebase_services.dart';
+import 'package:evently_app_abbas/models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -14,7 +17,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await PrefsManager.init();
-
+  if(FirebaseAuth.instance.currentUser != null) {
+    UserModel.loggedInUser = await FirebaseServices.getCurrentUser(FirebaseAuth.instance.currentUser!.uid);
+  }
   runApp(
     ChangeNotifierProvider(
       create: (context) => ConfigProvider(),
@@ -31,7 +36,7 @@ class Evently extends StatelessWidget {
     ConfigProvider configProvider = Provider.of<ConfigProvider>(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: isFinishedOnBoarding ? RoutesManager.register : RoutesManager.onboarding,
+      initialRoute: isFinishedOnBoarding ? (FirebaseAuth.instance.currentUser != null ? RoutesManager.mainLayout : RoutesManager.register) : RoutesManager.onboarding,
       onGenerateRoute: RoutesManager.getRoute,
       theme: ThemeManager.light,
       darkTheme: ThemeManager.dark,

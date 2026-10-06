@@ -4,7 +4,9 @@ import 'package:evently_app_abbas/core/sources/validator.dart';
 import 'package:evently_app_abbas/core/widgets/custom_elevted_button.dart';
 import 'package:evently_app_abbas/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app_abbas/core/widgets/cutom_text_button.dart';
+import 'package:evently_app_abbas/firebase_services/firebase_services.dart';
 import 'package:evently_app_abbas/l10n/app_localizations.dart';
+import 'package:evently_app_abbas/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -148,10 +150,12 @@ class _LoginScreenState extends State<LoginScreen> {
   void login() async {
     if (formKey.currentState!.validate() == false) return;
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text,
       );
+      UserModel user = await FirebaseServices.getCurrentUser(userCredential.user!.uid);
+      UserModel.loggedInUser = user;
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, RoutesManager.mainLayout);
       _showToast('Login successful.');
@@ -191,7 +195,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final userCredential =
       await FirebaseAuth.instance.signInWithCredential(credential);
-
+      UserModel user = await FirebaseServices.getCurrentUser(userCredential.user!.uid);
+      UserModel.loggedInUser = user;
       if (!mounted) return userCredential;
       _showToast('Logged in successfully');
       Navigator.pushReplacementNamed(context, RoutesManager.mainLayout);

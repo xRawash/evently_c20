@@ -16,11 +16,11 @@ class Favourite extends StatelessWidget {
         child: Column(
           children: [
             CustomTextFormField(hintText: AppLocalizations.of(context)!.searchForEvent, suffixIcon: Icon(Icons.search),),
-            Expanded(child: ListView.separated(
-              padding: EdgeInsets.only(top: 16),
-                itemBuilder: (context,index)=>EventItem(event: EventModel(id: 1, category: CategoryModel.getCategories(context)[0], title: "Meeting for Updating The Development Method ", description: "Meeting for Updating The Development Method ", date: DateTime.now(), time: TimeOfDay.now()),),
-                separatorBuilder: (context, index)=>SizedBox(height: 8,),
-                itemCount: 20))
+            // Expanded(child: ListView.separated(
+            //   padding: EdgeInsets.only(top: 16),
+            //     itemBuilder: (context,index)=>EventItem(event: EventModel(id: "1", category: CategoryModel.categories[0], title: "Meeting for Updating The Development Method ", description: "Meeting for Updating The Development Method ", dateTime: DateTime.now(),)),
+            //     separatorBuilder: (context, index)=>SizedBox(height: 8,),
+            //     itemCount: 20))
           ],
         ),
       ),

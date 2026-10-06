@@ -2,6 +2,7 @@ import 'package:evently_app_abbas/core/sources/assets_manager.dart';
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
 import 'package:evently_app_abbas/core/sources/routes_manager.dart';
 import 'package:evently_app_abbas/l10n/app_localizations.dart';
+import 'package:evently_app_abbas/models/user_model.dart';
 import 'package:evently_app_abbas/providers/config_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +21,8 @@ class Profile extends StatelessWidget {
           children: [
             Image.asset(ImageAssets.profilePic),
             SizedBox(height: 16,),
-            Text("Muhammed Saad", style: Theme.of(context).textTheme.headlineMedium,)
-            ,Text("moo@gmail.com", style: Theme.of(context).textTheme.labelSmall,)
+            Text(UserModel.loggedInUser!.name, style: Theme.of(context).textTheme.headlineMedium,)
+            ,Text(UserModel.loggedInUser!.email, style: Theme.of(context).textTheme.labelSmall,)
           ,SizedBox(height: 32,),
             Card(child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -31,7 +32,6 @@ class Profile extends StatelessWidget {
                   Spacer(),
                   Switch(
                       activeColor: ColorsManager.blue,
-
                       value: configProvider.isDark, onChanged: (isDarkEnabled){
                         if(isDarkEnabled){
                           configProvider.changeAppTheme(ThemeMode.dark);

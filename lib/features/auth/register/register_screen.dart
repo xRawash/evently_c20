@@ -232,8 +232,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       UserModel user = UserModel(name: googleUser.displayName!, id: userCredential.user!.uid, email: googleUser.email);
       await FirebaseServices.addUserToFireStore(user);
+      UserModel.loggedInUser = user;
       if (!mounted) return userCredential;
-      final isNewUser = userCredential.additionalUserInfo!.isNewUser ?? false;
+      bool isNewUser = userCredential.additionalUserInfo!.isNewUser;
       if(isNewUser) {
         _showToast('Account created successfully.');
         Navigator.pushReplacementNamed(context, RoutesManager.login);

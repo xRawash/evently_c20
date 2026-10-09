@@ -23,13 +23,10 @@ class CreateEventScreen extends StatefulWidget {
 class _CreateEventScreenState extends State<CreateEventScreen> {
   DateTime currentDateTime = DateTime.now();
 
-  /// 14-9-2026 - 6:012
-
-  /// 14-9-2026 , 6:01:00:000
   TimeOfDay currentTime = TimeOfDay.now();
   late TextEditingController titleController;
   late TextEditingController descriptionController;
-  CategoryModel? selectedCategory;
+  CategoryModel selectedCategory = CategoryModel.categories.first;
 
   @override
   void initState() {
@@ -47,7 +44,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   @override
   Widget build(BuildContext context) {
-    selectedCategory ?? CategoryModel.categories.first;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.addEvent)),

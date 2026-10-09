@@ -2,6 +2,7 @@ import 'package:evently_app_abbas/core/sources/assets_manager.dart';
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
 import 'package:evently_app_abbas/core/widgets/custom_tab_bar.dart';
 import 'package:evently_app_abbas/core/widgets/event_item.dart';
+import 'package:evently_app_abbas/firebase_services/firebase_services.dart';
 import 'package:evently_app_abbas/l10n/app_localizations.dart';
 import 'package:evently_app_abbas/models/category_model.dart';
 import 'package:evently_app_abbas/models/event_model.dart';
@@ -19,10 +20,18 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int selectedIndex = 0;
+  CategoryModel? selectedCategory;
 
   @override
   Widget build(BuildContext context) {
     ConfigProvider configProvider = Provider.of<ConfigProvider>(context);
+    final allCategory = CategoryModel(
+      id: "0",
+      name: AppLocalizations.of(context)!.all,
+      icon: Icons.all_inclusive,
+      image: ImageAssets.meetingLight,
+    );
+    final currentCategory = selectedCategory ?? allCategory;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -46,9 +55,12 @@ class _HomeState extends State<Home> {
                 IconButton(
                   onPressed: () {
                     configProvider.changeAppTheme(
-                        configProvider.isDark ? ThemeMode.light : ThemeMode.dark);
+                      configProvider.isDark ? ThemeMode.light : ThemeMode.dark,
+                    );
                   },
-                  icon: configProvider.isDark ? Icon(Icons.light_mode_rounded) : Icon(Icons.dark_mode_rounded),
+                  icon: configProvider.isDark
+                      ? Icon(Icons.light_mode_rounded)
+                      : Icon(Icons.dark_mode_rounded),
                 ),
                 SizedBox(width: 8),
                 Card(
@@ -58,8 +70,10 @@ class _HomeState extends State<Home> {
                       horizontal: 8,
                     ),
                     child: InkWell(
-                      onTap: (){
-                        configProvider.changeAppLanguage(configProvider.isEnglish ? 'ar' : 'en');
+                      onTap: () {
+                        configProvider.changeAppLanguage(
+                          configProvider.isEnglish ? 'ar' : 'en',
+                        );
                       },
                       child: Text(
                         configProvider.isEnglish ? 'AR' : 'EN',
@@ -73,38 +87,40 @@ class _HomeState extends State<Home> {
             SizedBox(height: 12),
             CustomTabBar(
               categories: [
-                CategoryModel(
-                  id: "1",
-                  name: AppLocalizations.of(context)!.all,
-                  icon: Icons.all_inclusive,
-                  image: ImageAssets.meetingLight,
-                ),
+                allCategory,
                 ...CategoryModel.categories,
               ],
-
+              onSelectedCategoryClicked: (category){
+                setState(() {
+                  selectedCategory = category;
+                });
+              },
               selectedBgColor: ColorsManager.darkBlue,
               selectedFgColor: ColorsManager.white,
               unSelectedBgColor: ColorsManager.white,
               unSelectedFgColor: ColorsManager.black,
             ),
-            // Expanded(
-            //   child: ListView.separated(
-            //     padding: EdgeInsets.only(top: 16),
-            //     itemBuilder: (context, index) => EventItem(
-            //       event: EventModel(
-            //         ownerId: ,
-            //         id: "1",
-            //         category: CategoryModel.categories[0],
-            //         title: "Meeting for Updating The Development Method ",
-            //         description:
-            //             "Meeting for Updating The Development Method ",
-            //         dateTime: DateTime.now(),
-            //       ),
-            //     ),
-            //     separatorBuilder: (context, index) => SizedBox(height: 8),
-            //     itemCount: 20,
-            //   ),
-            // ),
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseServices.getEventsRealTimeFromFireStore(currentCategory),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Something went wrong"));
+                  }
+                  List<EventModel> events = snapshot.data ?? [];
+                  return ListView.separated(
+                    padding: EdgeInsets.only(top: 16),
+                    itemBuilder: (context, index) =>
+                        EventItem(event: events[index]),
+                    separatorBuilder: (context, index) => SizedBox(height: 8),
+                    itemCount: events.length,
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),

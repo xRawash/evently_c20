@@ -3,22 +3,29 @@ class UserModel {
   String name;
   String id;
   String email;
+  List<String> favEvents;
 
   UserModel({
     required this.name,
     required this.id,
     required this.email,
-});
-  UserModel.fromJson(Map<String, dynamic> json): this(
-    name : json['name'],
-    id : json['id'],
-    email : json['email']);
+    List<String>? favEvents,
+  }) : favEvents = favEvents ?? [];
 
-  Map<String, dynamic> toJson(){
+  UserModel.fromJson(Map<String, dynamic> json)
+      : this(
+    name: json['name'] ,
+    id: json['id'] ,
+    email: json['email'] ,
+    favEvents: (json['favEvents'] as List<dynamic>?)?.cast<String>().toList() ?? [],
+  );
+
+  Map<String, dynamic> toJson() {
     return {
-      'name' : name,
-      'id' : id,
-      'email' : email,
+      'name': name,
+      'id': id,
+      'email': email,
+      'favEvents': favEvents,
     };
   }
 }

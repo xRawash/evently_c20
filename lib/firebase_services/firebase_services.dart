@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evently_app_abbas/models/category_model.dart';
 import 'package:evently_app_abbas/models/event_model.dart';
 import 'package:evently_app_abbas/models/user_model.dart';
 
@@ -44,13 +47,84 @@ class FirebaseServices {
     return eventsDoc.set(event.toJson());
   }
 
-  // static Future<List<EventModel>> getEvent() async {
-  //   CollectionReference<Map<String, dynamic>> eventsCollection =
-  //       _getEventsCollectionReference();
-  //   QuerySnapshot<Map<String, dynamic>> querySnapshot = await eventsCollection
-  //       .get();
-  //   List<DocumentSnapshot<Map<String, dynamic>>> documents = querySnapshot.docs;
-  //   Map<String, dynamic> data = documents.first.data()!;
-  //   return EventModel.fromJson(data);
-  // }
+  static Stream<List<EventModel>> getEventsRealTimeFromFireStore(CategoryModel selectedCategory) async* {
+    CollectionReference<Map<String, dynamic>> eventsCollection =
+        _getEventsCollectionReference();
+    Stream<QuerySnapshot<Map<String, dynamic>>> collectionSnapshots =
+        eventsCollection.where('categoryId', isEqualTo: selectedCategory.id == '0' ? null : selectedCategory.id).snapshots();
+    Stream<List<EventModel>> events = collectionSnapshots.map(
+      (snapshot) =>
+          snapshot.docs.map((doc) => EventModel.fromJson(doc.data())).toList(),
+    );
+    yield* events;
+  }
+  static Future<void> addEventToFav(EventModel event) async {
+    UserModel currentUser = UserModel.loggedInUser!;
+    if (!currentUser.favEvents.contains(event.id)) {
+      currentUser.favEvents.add(event.id);
+    }
+    CollectionReference<Map<String, dynamic>> usersCollection = _getUsersCollectionReference();
+    DocumentReference<Map<String, dynamic>> userDoc = usersCollection.doc(currentUser.id);
+    return userDoc.update({'favEvents': currentUser.favEvents});
+  }
+
+  static Future<void> removeEventFromFav(EventModel event) async {
+    UserModel currentUser = UserModel.loggedInUser!;
+    currentUser.favEvents.remove(event.id);
+    CollectionReference<Map<String, dynamic>> usersCollection = _getUsersCollectionReference();
+    DocumentReference<Map<String, dynamic>> userDoc = usersCollection.doc(currentUser.id);
+    return userDoc.update({'favEvents': currentUser.favEvents});
+  }
+
+  static Stream<List<EventModel>> getFavEventsRealTimeFromFireStore() {
+    UserModel currentUser = UserModel.loggedInUser!;
+
+    return _getUsersCollectionReference()
+        .doc(currentUser.id)
+        .snapshots()
+        .asyncExpand((userSnap) async* {
+      if (!userSnap.exists || userSnap.data() == null) {
+        yield [];
+        return;
+      }
+      UserModel updatedUser = UserModel.fromJson(userSnap.data()!);
+      UserModel.loggedInUser = updatedUser;
+
+      if (updatedUser.favEvents.isEmpty) {
+        yield [];
+        return;
+      }
+
+      List<List<String>> chunks = [];
+      for (var i = 0; i < updatedUser.favEvents.length; i += 30) {
+        chunks.add(
+          updatedUser.favEvents.sublist(
+            i,
+            i + 30 > updatedUser.favEvents.length
+                ? updatedUser.favEvents.length
+                : i + 30,
+          ),
+        );
+      }
+
+      List<Future<QuerySnapshot<Map<String, dynamic>>>> futures =
+      chunks.map((chunk) {
+        return _getEventsCollectionReference()
+            .where('id', whereIn: chunk)
+            .get();
+      }).toList();
+
+      List<QuerySnapshot<Map<String, dynamic>>> snapshots =
+      await Future.wait(futures);
+
+      List<EventModel> allEvents = [];
+      for (var snap in snapshots) {
+        allEvents.addAll(
+          snap.docs.map((doc) => EventModel.fromJson(doc.data())),
+        );
+      }
+
+      yield allEvents;
+    });
+  }
 }

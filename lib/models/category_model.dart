@@ -8,12 +8,10 @@ class CategoryModel{
   String name;
   IconData icon;
   String image;
-  static ConfigProvider? config;
   CategoryModel({required this.id, required this.name, required this.icon, required this.image});
- static bool isDark = config!.isDark;
   static List<CategoryModel> get categories {
-    final isDark = config?.isDark ?? false;
-    final l10n = lookupAppLocalizations(config?.locale ?? const Locale('en'));
+    bool isDark = ConfigProvider().isDark ;
+    AppLocalizations? l10n = lookupAppLocalizations(ConfigProvider().locale);
 
     return [
       CategoryModel(id: '1', name: l10n.sports, icon: Icons.sports_football,

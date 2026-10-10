@@ -107,32 +107,30 @@ class FirebaseServices {
         );
       }
 
-      List<Future<QuerySnapshot<Map<String, dynamic>>>> futures =
-      chunks.map((chunk) {
-        return _getEventsCollectionReference()
-            .where('id', whereIn: chunk)
-            .get();
-      }).toList();
-
-      List<QuerySnapshot<Map<String, dynamic>>> snapshots =
-      await Future.wait(futures);
-
-      List<EventModel> allEvents = [];
-      for (var snap in snapshots) {
-        allEvents.addAll(
-          snap.docs.map((doc) => EventModel.fromJson(doc.data())),
-        );
-      }
-
-      yield allEvents;
+      yield* _getEventsCollectionReference()
+          .where('id', whereIn: chunks[0])
+          .snapshots()
+          .map((snap) {
+        List<EventModel> events =
+            snap.docs.map((doc) => EventModel.fromJson(doc.data())).toList();
+        events.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+        return events;
+      });
     });
   }
 
   static Future<void> deleteEvent(EventModel event) async {
+    UserModel currentUser = UserModel.loggedInUser!;
+    if (currentUser.favEvents.contains(event.id)) {
+      currentUser.favEvents.remove(event.id);
+      await _getUsersCollectionReference()
+          .doc(currentUser.id)
+          .update({'favEvents': currentUser.favEvents});
+    }
+
     CollectionReference<Map<String, dynamic>> eventsCollection =
-    _getEventsCollectionReference();
-    DocumentReference<Map<String, dynamic>> eventsDoc = eventsCollection.doc(event.id);
-    return eventsDoc.delete();
+        _getEventsCollectionReference();
+    return eventsCollection.doc(event.id).delete();
   }
   static Future<void> updateEvent(EventModel event) async {
     CollectionReference<Map<String, dynamic>> eventsCollection =

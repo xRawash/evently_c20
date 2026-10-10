@@ -152,4 +152,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get skip => 'Skip';
+
+  @override
+  String get updateEvent => 'Update Event';
+
+  @override
+  String get eventDetails => 'Event Details';
+
+  @override
+  String get editEvent => 'Edit Event';
 }

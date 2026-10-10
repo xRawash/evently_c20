@@ -127,4 +127,17 @@ class FirebaseServices {
       yield allEvents;
     });
   }
+
+  static Future<void> deleteEvent(EventModel event) async {
+    CollectionReference<Map<String, dynamic>> eventsCollection =
+    _getEventsCollectionReference();
+    DocumentReference<Map<String, dynamic>> eventsDoc = eventsCollection.doc(event.id);
+    return eventsDoc.delete();
+  }
+  static Future<void> updateEvent(EventModel event) async {
+    CollectionReference<Map<String, dynamic>> eventsCollection =
+    _getEventsCollectionReference();
+    DocumentReference<Map<String, dynamic>> eventsDoc = eventsCollection.doc(event.id);
+    return eventsDoc.update(event.toJson());
+  }
 }

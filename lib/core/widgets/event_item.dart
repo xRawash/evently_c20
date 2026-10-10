@@ -20,55 +20,60 @@ class _EventItemState extends State<EventItem> {
   @override
   Widget build(BuildContext context) {
     bool isFavourite = UserModel.loggedInUser!.favEvents.contains(widget.event.id);
-    return Container(
-      width: double.infinity,
-      height: 193,
-      decoration: BoxDecoration(
-          image: DecorationImage(
-              fit: BoxFit.fill,
-              image: AssetImage(widget.event.category.image)),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: ColorsManager.grey, width: 1)
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: (){
+        Navigator.pushNamed(context, '/eventDetails', arguments: widget.event);
+      },
+      child: Container(
+        width: double.infinity,
+        height: 193,
+        decoration: BoxDecoration(
+            image: DecorationImage(
+                fit: BoxFit.fill,
+                image: AssetImage(widget.event.category.image)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: ColorsManager.grey, width: 1)
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
 
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(widget.event.dateTime.showMonthWeekDay, style:Theme.of(context).textTheme.headlineSmall),
-              ),
-            ),
-            Spacer(),
-            Card(
-
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(widget.event.title, style: Theme
-                          .of(context)
-                          .textTheme.headlineSmall),
-                    ),
-                    InkWell(onTap: () async {
-                      setState(() {
-                        isFavourite = !isFavourite;
-                        if(isFavourite) {
-                          FirebaseServices.addEventToFav(widget.event);
-                        }else {
-                          FirebaseServices.removeEventFromFav(widget.event);
-                        }
-                      });
-                    },child: Icon(isFavourite? Icons.favorite_outlined : Icons.favorite_outline)),
-                  ],
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(widget.event.dateTime.showMonthWeekDay, style:Theme.of(context).textTheme.headlineSmall),
                 ),
               ),
-            )
-          ],
+              Spacer(),
+              Card(
+
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(widget.event.title, style: Theme
+                            .of(context)
+                            .textTheme.headlineSmall),
+                      ),
+                      InkWell(onTap: () async {
+                        setState(() {
+                          isFavourite = !isFavourite;
+                          if(isFavourite) {
+                            FirebaseServices.addEventToFav(widget.event);
+                          }else {
+                            FirebaseServices.removeEventFromFav(widget.event);
+                          }
+                        });
+                      },child: Icon(isFavourite? Icons.favorite_outlined : Icons.favorite_outline)),
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

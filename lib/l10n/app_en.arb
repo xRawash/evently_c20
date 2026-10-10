@@ -47,5 +47,8 @@
   "letsStart": "Let's start",
   "next": "Next",
   "getStarted": "Get Started",
-  "skip": "Skip"
+  "skip": "Skip",
+  "updateEvent": "Update Event",
+  "eventDetails": "Event Details",
+  "editEvent": "Edit Event"
 }

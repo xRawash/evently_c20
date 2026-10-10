@@ -47,5 +47,8 @@
   "letsStart": "هيا نبدأ",
   "next": "التالي",
   "getStarted": "ابدأ الآن",
-  "skip": "تخطي"
+  "skip": "تخطي",
+  "updateEvent": "تعديل الحدث",
+  "eventDetails": "تفاصيل الحدث",
+  "editEvent": "تعديل الحدث"
 }

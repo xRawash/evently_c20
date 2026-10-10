@@ -152,4 +152,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get skip => 'تخطي';
+
+  @override
+  String get updateEvent => 'تعديل الحدث';
+
+  @override
+  String get eventDetails => 'تفاصيل الحدث';
+
+  @override
+  String get editEvent => 'تعديل الحدث';
 }

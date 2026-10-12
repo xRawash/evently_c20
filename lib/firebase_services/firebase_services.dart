@@ -77,25 +77,60 @@ class FirebaseServices {
   }
 
   static Stream<List<EventModel>> getFavEventsRealTimeFromFireStore() {
-    List<String> favIds = UserModel.loggedInUser?.favEvents ?? [];
+    UserModel? currentUser = UserModel.loggedInUser;
+    if (currentUser == null) return Stream.value([]);
 
-    if (favIds.isEmpty) {
-      return Stream.value([]);
+    late StreamController<List<EventModel>> controller;
+    StreamSubscription? userSub;
+    StreamSubscription? eventsSub;
+
+    void updateFavs() async {
+      List<String> favIds = UserModel.loggedInUser?.favEvents ?? [];
+      if (favIds.isEmpty) {
+        if (!controller.isClosed) controller.add([]);
+        return;
+      }
+
+      List<String> queryIds = favIds.length > 30 ? favIds.sublist(0, 30) : favIds;
+      try {
+        QuerySnapshot<Map<String, dynamic>> snap = await _getEventsCollectionReference()
+            .where('id', whereIn: queryIds)
+            .get();
+
+        List<EventModel> events = snap.docs
+            .map((doc) => EventModel.fromJson(doc.data()))
+            .toList();
+
+        events.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+        if (!controller.isClosed) controller.add(events);
+      } catch (e) {
+        if (!controller.isClosed) controller.addError(e);
+      }
     }
 
-    List<String> queryIds = favIds.length > 30 ? favIds.sublist(0, 30) : favIds;
+    controller = StreamController<List<EventModel>>(
+      onListen: () {
+        userSub = _getUsersCollectionReference()
+            .doc(currentUser.id)
+            .snapshots()
+            .listen((userSnap) {
+          if (userSnap.exists && userSnap.data() != null) {
+            UserModel.loggedInUser = UserModel.fromJson(userSnap.data()!);
+          }
+          updateFavs();
+        });
 
-    return _getEventsCollectionReference()
-        .where('id', whereIn: queryIds)
-        .snapshots()
-        .map((snapshot) {
-      List<EventModel> events = snapshot.docs
-          .map((doc) => EventModel.fromJson(doc.data()))
-          .toList();
+        eventsSub = _getEventsCollectionReference().snapshots().listen((_) {
+          updateFavs();
+        });
+      },
+      onCancel: () {
+        userSub?.cancel();
+        eventsSub?.cancel();
+      },
+    );
 
-      events.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-      return events;
-    });
+    return controller.stream;
   }
 
   static Future<void> deleteEvent(EventModel event) async {

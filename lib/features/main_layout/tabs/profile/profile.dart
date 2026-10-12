@@ -20,75 +20,103 @@ class Profile extends StatelessWidget {
         child: Column(
           children: [
             Image.asset(ImageAssets.profilePic),
-            SizedBox(height: 16,),
-            Text(UserModel.loggedInUser!.name, style: Theme.of(context).textTheme.headlineMedium,)
-            ,Text(UserModel.loggedInUser!.email, style: Theme.of(context).textTheme.labelSmall,)
-          ,SizedBox(height: 32,),
-            Card(child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Text(AppLocalizations.of(context)!.darkMode, style: Theme.of(context).textTheme.labelMedium,),
-                  Spacer(),
-                  Switch(
-                      activeColor: ColorsManager.blue,
-                      value: configProvider.isDark, onChanged: (isDarkEnabled){
-                        if(isDarkEnabled){
-                          configProvider.changeAppTheme(ThemeMode.dark);
-                        }else{
-                          configProvider.changeAppTheme(ThemeMode.light);
-                        }
-                  })
-                ],
-              ),
-            )),
-            SizedBox(height: 16,),
-            Card(child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Text(AppLocalizations.of(context)!.language, style: Theme.of(context).textTheme.labelMedium,),
-                  Spacer(),
-
-
-                  DropdownButton(
-                  icon: Icon(Icons.arrow_forward_ios_outlined),
-                    underline: Container(),
-                    items: [AppLocalizations.of(context)!.english, AppLocalizations.of(context)!.arabic].map((val)=>DropdownMenuItem(value: val,child: Text(val))).toList(),
-                    onChanged: (newLang) {
-                    if (newLang == AppLocalizations.of(context)!.english){
-                      configProvider.changeAppLanguage('en');
-                    } else {
-                      configProvider.changeAppLanguage('ar');
-                    }
-;                    },
-                  )
-
-
-                ],
-              ),
-            )),
-            SizedBox(height: 16,),
-            Card(child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: InkWell(
-                onTap: (){
-                  FirebaseAuth.instance.signOut();
-                  Navigator.pushReplacementNamed(context, RoutesManager.login);
-                },
+            const SizedBox(height: 16),
+            Text(
+              UserModel.loggedInUser?.name ?? '',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            Text(
+              UserModel.loggedInUser?.email ?? '',
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+            const SizedBox(height: 32),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    Text(AppLocalizations.of(context)!.logout, style: Theme.of(context).textTheme.labelMedium,),
-                    Spacer(),
-
-
-                  Icon(Icons.logout)
-
-
+                    Text(
+                      AppLocalizations.of(context)!.darkMode,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    const Spacer(),
+                    Switch(
+                      activeTrackColor: ColorsManager.blue,
+                      value: configProvider.isDark,
+                      onChanged: (isDarkEnabled) {
+                        if (isDarkEnabled) {
+                          configProvider.changeAppTheme(ThemeMode.dark);
+                        } else {
+                          configProvider.changeAppTheme(ThemeMode.light);
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
-            )),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.language,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    const Spacer(),
+                    DropdownButton<String>(
+                      icon: const Icon(Icons.arrow_forward_ios_outlined),
+                      underline: Container(),
+                      items: [
+                        AppLocalizations.of(context)!.english,
+                        AppLocalizations.of(context)!.arabic,
+                      ]
+                          .map(
+                            (val) => DropdownMenuItem(
+                              value: val,
+                              child: Text(val),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (newLang) {
+                        if (newLang == AppLocalizations.of(context)!.english) {
+                          configProvider.changeAppLanguage('en');
+                        } else {
+                          configProvider.changeAppLanguage('ar');
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: InkWell(
+                  onTap: () {
+                    FirebaseAuth.instance.signOut();
+                    Navigator.pushReplacementNamed(
+                      context,
+                      RoutesManager.login,
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.logout,
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.logout),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

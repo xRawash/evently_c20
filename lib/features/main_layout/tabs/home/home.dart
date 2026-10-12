@@ -46,7 +46,7 @@ class _HomeState extends State<Home> {
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     Text(
-                      UserModel.loggedInUser!.name,
+                      UserModel.loggedInUser?.name ?? '',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ],

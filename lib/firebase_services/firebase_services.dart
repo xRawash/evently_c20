@@ -6,14 +6,12 @@ import 'package:evently_app_abbas/models/event_model.dart';
 import 'package:evently_app_abbas/models/user_model.dart';
 
 class FirebaseServices {
-  static CollectionReference<Map<String, dynamic>>
-  _getUsersCollectionReference() {
+  static CollectionReference<Map<String, dynamic>> _getUsersCollectionReference() {
     FirebaseFirestore db = FirebaseFirestore.instance;
     return db.collection('users');
   }
 
-  static CollectionReference<Map<String, dynamic>>
-  _getEventsCollectionReference() {
+  static CollectionReference<Map<String, dynamic>> _getEventsCollectionReference() {
     FirebaseFirestore db = FirebaseFirestore.instance;
     return db.collection('Events');
   }
@@ -47,16 +45,18 @@ class FirebaseServices {
     return eventsDoc.set(event.toJson());
   }
 
-  static Stream<List<EventModel>> getEventsRealTimeFromFireStore(CategoryModel selectedCategory) async* {
-    CollectionReference<Map<String, dynamic>> eventsCollection =
-        _getEventsCollectionReference();
-    Stream<QuerySnapshot<Map<String, dynamic>>> collectionSnapshots =
-        eventsCollection.where('categoryId', isEqualTo: selectedCategory.id == '0' ? null : selectedCategory.id).snapshots();
-    Stream<List<EventModel>> events = collectionSnapshots.map(
-      (snapshot) =>
-          snapshot.docs.map((doc) => EventModel.fromJson(doc.data())).toList(),
-    );
-    yield* events;
+  static Stream<List<EventModel>> getEventsRealTimeFromFireStore(
+      CategoryModel selectedCategory) {
+    Query<Map<String, dynamic>> query = _getEventsCollectionReference();
+    if (selectedCategory.id != '0') {
+      query = query.where('categoryId', isEqualTo: selectedCategory.id);
+    }
+    return query.snapshots().map((snapshot) {
+      List<EventModel> events =
+          snapshot.docs.map((doc) => EventModel.fromJson(doc.data())).toList();
+      events.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      return events;
+    });
   }
   static Future<void> addEventToFav(EventModel event) async {
     UserModel currentUser = UserModel.loggedInUser!;
@@ -77,45 +77,24 @@ class FirebaseServices {
   }
 
   static Stream<List<EventModel>> getFavEventsRealTimeFromFireStore() {
-    UserModel currentUser = UserModel.loggedInUser!;
+    List<String> favIds = UserModel.loggedInUser?.favEvents ?? [];
 
-    return _getUsersCollectionReference()
-        .doc(currentUser.id)
+    if (favIds.isEmpty) {
+      return Stream.value([]);
+    }
+
+    List<String> queryIds = favIds.length > 30 ? favIds.sublist(0, 30) : favIds;
+
+    return _getEventsCollectionReference()
+        .where('id', whereIn: queryIds)
         .snapshots()
-        .asyncExpand((userSnap) async* {
-      if (!userSnap.exists || userSnap.data() == null) {
-        yield [];
-        return;
-      }
-      UserModel updatedUser = UserModel.fromJson(userSnap.data()!);
-      UserModel.loggedInUser = updatedUser;
+        .map((snapshot) {
+      List<EventModel> events = snapshot.docs
+          .map((doc) => EventModel.fromJson(doc.data()))
+          .toList();
 
-      if (updatedUser.favEvents.isEmpty) {
-        yield [];
-        return;
-      }
-
-      List<List<String>> chunks = [];
-      for (var i = 0; i < updatedUser.favEvents.length; i += 30) {
-        chunks.add(
-          updatedUser.favEvents.sublist(
-            i,
-            i + 30 > updatedUser.favEvents.length
-                ? updatedUser.favEvents.length
-                : i + 30,
-          ),
-        );
-      }
-
-      yield* _getEventsCollectionReference()
-          .where('id', whereIn: chunks[0])
-          .snapshots()
-          .map((snap) {
-        List<EventModel> events =
-            snap.docs.map((doc) => EventModel.fromJson(doc.data())).toList();
-        events.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-        return events;
-      });
+      events.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      return events;
     });
   }
 

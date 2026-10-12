@@ -3,7 +3,7 @@ import 'package:evently_app_abbas/models/category_model.dart';
 import 'package:flutter/material.dart';
 
 class CustomTabBar extends StatefulWidget {
-  CustomTabBar({
+  const CustomTabBar({
     super.key,
     required this.categories,
     required this.selectedBgColor,
@@ -14,13 +14,13 @@ class CustomTabBar extends StatefulWidget {
     this.initialCategory,
   });
 
-  List<CategoryModel> categories;
-  Color selectedBgColor;
-  Color unSelectedBgColor;
-  Color selectedFgColor;
-  Color unSelectedFgColor;
-  void Function(CategoryModel)? onSelectedCategoryClicked;
-  CategoryModel? initialCategory;
+  final List<CategoryModel> categories;
+  final Color selectedBgColor;
+  final Color unSelectedBgColor;
+  final Color selectedFgColor;
+  final Color unSelectedFgColor;
+  final void Function(CategoryModel)? onSelectedCategoryClicked;
+  final CategoryModel? initialCategory;
 
   @override
   State<CustomTabBar> createState() => _CustomTabBarState();

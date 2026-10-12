@@ -1,29 +1,39 @@
-import 'package:evently_app_abbas/core/sources/colors_manager.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextFormField extends StatefulWidget {
-   CustomTextFormField({required this.hintText, this.prefixIcon,this.isObscured = false ,this.suffixIcon,  this.controller,  this.validator, this.lines = 1});
-  String hintText;
-  Widget? prefixIcon;
-  Widget? suffixIcon;
-  TextEditingController? controller;
-String? Function(String?)? validator;
-bool isObscured;
-int lines ;
+  const CustomTextFormField({
+    super.key,
+    required this.hintText,
+    this.prefixIcon,
+    this.isObscured = false,
+    this.suffixIcon,
+    this.controller,
+    this.validator,
+    this.lines = 1,
+  });
+
+  final String hintText;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+  final TextEditingController? controller;
+  final String? Function(String?)? validator;
+  final bool isObscured;
+  final int lines;
 
   @override
   State<CustomTextFormField> createState() => _CustomTextFormFieldState();
 }
 
 class _CustomTextFormFieldState extends State<CustomTextFormField> {
-  bool isObscured = false;
+  late bool isObscured;
+
   @override
   void initState() {
-
     super.initState();
     isObscured = widget.isObscured;
   }
-  Widget obscureIcon () {
+
+  Widget obscureIcon() {
     return IconButton(
       onPressed: () {
         setState(() {
@@ -33,19 +43,19 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       icon: Icon(isObscured ? Icons.visibility_off : Icons.visibility),
     );
   }
+
   @override
   Widget build(BuildContext context) {
-    return    TextFormField(
+    return TextFormField(
       maxLines: widget.lines,
       obscureText: isObscured,
       obscuringCharacter: '*',
-      validator:widget.validator,
+      validator: widget.validator,
       controller: widget.controller,
       decoration: InputDecoration(
-
-          prefixIcon:widget.prefixIcon,
-          suffixIcon: widget.isObscured? obscureIcon() : widget.suffixIcon,
-          hintText: widget.hintText
+        prefixIcon: widget.prefixIcon,
+        suffixIcon: widget.isObscured ? obscureIcon() : widget.suffixIcon,
+        hintText: widget.hintText,
       ),
     );
   }

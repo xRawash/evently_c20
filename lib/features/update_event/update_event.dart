@@ -37,7 +37,7 @@ class _UpdateEventState extends State<UpdateEvent> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if(!isInitialized){
+    if (!isInitialized) {
       final event = ModalRoute.of(context)!.settings.arguments as EventModel;
       titleController.text = event.title;
       descriptionController.text = event.description;
@@ -77,7 +77,7 @@ class _UpdateEventState extends State<UpdateEvent> {
                 child: Image.asset(selectedCategory.image),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             CustomTabBar(
               categories: CategoryModel.categories,
               initialCategory: selectedCategory,
@@ -91,64 +91,64 @@ class _UpdateEventState extends State<UpdateEvent> {
                 });
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.title,
               style: Theme.of(context).textTheme.displaySmall,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             CustomTextFormField(
               hintText: AppLocalizations.of(context)!.eventTitle,
               controller: titleController,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.description,
               style: Theme.of(context).textTheme.displaySmall,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             CustomTextFormField(
               hintText: AppLocalizations.of(context)!.eventDescription,
               lines: 4,
               controller: descriptionController,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.date_range_outlined),
-                SizedBox(width: 8),
+                const Icon(Icons.date_range_outlined),
+                const SizedBox(width: 8),
                 Text(
                   currentDateTime.toFormattedDate,
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
-                Spacer(),
+                const Spacer(),
                 CustomTextButton(
                   text: AppLocalizations.of(context)!.chooseDate,
                   onTap: _chooseEventDate,
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.access_time),
-                SizedBox(width: 8),
+                const Icon(Icons.access_time),
+                const SizedBox(width: 8),
                 Text(
                   currentDateTime.toFormattedTime,
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
-                Spacer(),
+                const Spacer(),
                 CustomTextButton(
                   text: AppLocalizations.of(context)!.chooseTime,
                   onTap: _chooseEventTime,
                 ),
               ],
             ),
-
-            Spacer(),
+            const Spacer(),
             CustomElevatedButton(
               title: AppLocalizations.of(context)!.updateEvent,
               onPress: () async {
+                final nav = Navigator.of(context);
                 event.title = titleController.text;
                 event.description = descriptionController.text;
                 event.category = selectedCategory;
@@ -161,7 +161,8 @@ class _UpdateEventState extends State<UpdateEvent> {
                   textColor: Colors.white,
                   fontSize: 16,
                 );
-                if (mounted) Navigator.pop(context);
+                if (!mounted) return;
+                nav.pop();
               },
             ),
           ],
@@ -174,7 +175,7 @@ class _UpdateEventState extends State<UpdateEvent> {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
       initialDate: currentDateTime,
     );
 

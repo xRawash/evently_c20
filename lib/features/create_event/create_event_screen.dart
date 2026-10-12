@@ -1,5 +1,4 @@
 import 'package:evently_app_abbas/core/extensions/date_time_ex.dart';
-import 'package:evently_app_abbas/core/sources/assets_manager.dart';
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
 import 'package:evently_app_abbas/core/widgets/custom_elevted_button.dart';
 import 'package:evently_app_abbas/core/widgets/custom_tab_bar.dart';
@@ -22,7 +21,6 @@ class CreateEventScreen extends StatefulWidget {
 
 class _CreateEventScreenState extends State<CreateEventScreen> {
   DateTime currentDateTime = DateTime.now();
-
   TimeOfDay currentTime = TimeOfDay.now();
   late TextEditingController titleController;
   late TextEditingController descriptionController;
@@ -37,9 +35,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     titleController.dispose();
     descriptionController.dispose();
+    super.dispose();
   }
 
   @override
@@ -60,10 +58,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 clipBehavior: Clip.hardEdge,
-                child: Image.asset(selectedCategory?.image ?? CategoryModel.categories[0].image),
+                child: Image.asset(selectedCategory.image),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             CustomTabBar(
               categories: CategoryModel.categories,
               selectedBgColor: ColorsManager.darkBlue,
@@ -76,66 +74,63 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 });
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.title,
               style: Theme.of(context).textTheme.displaySmall,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             CustomTextFormField(
               hintText: AppLocalizations.of(context)!.eventTitle,
               controller: titleController,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.description,
               style: Theme.of(context).textTheme.displaySmall,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             CustomTextFormField(
               hintText: AppLocalizations.of(context)!.eventDescription,
               lines: 4,
               controller: descriptionController,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.date_range_outlined),
-                SizedBox(width: 8),
+                const Icon(Icons.date_range_outlined),
+                const SizedBox(width: 8),
                 Text(
                   currentDateTime.toFormattedDate,
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
-                Spacer(),
+                const Spacer(),
                 CustomTextButton(
                   text: AppLocalizations.of(context)!.chooseDate,
                   onTap: _chooseEventDate,
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.date_range_outlined),
-                SizedBox(width: 8),
+                const Icon(Icons.access_time),
+                const SizedBox(width: 8),
                 Text(
                   currentDateTime.toFormattedTime,
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
-                Spacer(),
+                const Spacer(),
                 CustomTextButton(
                   text: AppLocalizations.of(context)!.chooseTime,
                   onTap: _chooseEventTime,
                 ),
               ],
             ),
-
-            Spacer(),
+            const Spacer(),
             CustomElevatedButton(
               title: AppLocalizations.of(context)!.addEvent,
-              onPress: () {
-                _addEvent();
-              },
+              onPress: _addEvent,
             ),
           ],
         ),
@@ -144,39 +139,46 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   }
 
   void _chooseEventDate() async {
-    currentDateTime =
-        await showDatePicker(
-          context: context,
-          firstDate: DateTime.now(),
-          lastDate: DateTime.now().add(Duration(days: 365)),
-          initialDate: DateTime.now(),
-        ) ??
-        currentDateTime;
-
-    currentDateTime = currentDateTime.copyWith(
-      hour: currentTime.hour,
-      minute: currentTime.minute,
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDate: currentDateTime,
     );
-    setState(() {});
+
+    if (pickedDate != null) {
+      setState(() {
+        currentDateTime = pickedDate.copyWith(
+          hour: currentTime.hour,
+          minute: currentTime.minute,
+        );
+      });
+    }
   }
 
   void _chooseEventTime() async {
-    currentTime =
-        await showTimePicker(context: context, initialTime: TimeOfDay.now()) ??
-        currentTime;
-
-    currentDateTime = currentDateTime.copyWith(
-      hour: currentTime.hour,
-      minute: currentTime.minute,
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: currentTime,
     );
-    setState(() {});
+
+    if (pickedTime != null) {
+      setState(() {
+        currentTime = pickedTime;
+        currentDateTime = currentDateTime.copyWith(
+          hour: currentTime.hour,
+          minute: currentTime.minute,
+        );
+      });
+    }
   }
 
   void _addEvent() async {
+    final navigator = Navigator.of(context);
     EventModel event = EventModel(
-      ownerId: UserModel.loggedInUser!.id,
+      ownerId: UserModel.loggedInUser?.id ?? '',
       id: '',
-      category: selectedCategory!,
+      category: selectedCategory,
       title: titleController.text.trim(),
       description: descriptionController.text.trim(),
       dateTime: currentDateTime,
@@ -189,6 +191,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       textColor: Colors.white,
       fontSize: 16,
     );
-    Navigator.pop(context);
+    if (mounted) navigator.pop();
   }
 }

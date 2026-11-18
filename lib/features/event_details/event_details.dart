@@ -1,11 +1,12 @@
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
 import 'package:evently_app_abbas/core/sources/routes_manager.dart';
-import 'package:evently_app_abbas/firebase_services/firebase_services.dart';
 import 'package:evently_app_abbas/l10n/app_localizations.dart';
 import 'package:evently_app_abbas/models/event_model.dart';
 import 'package:evently_app_abbas/models/user_model.dart';
+import 'package:evently_app_abbas/view_models/event_form_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/extensions/date_time_ex.dart';
 
@@ -20,6 +21,8 @@ class _EventDetailsState extends State<EventDetails> {
   @override
   Widget build(BuildContext context) {
     final event = ModalRoute.of(context)!.settings.arguments as EventModel;
+    EventFormViewModel eventFormViewModel =
+        Provider.of<EventFormViewModel>(context);
     bool isOwner = event.ownerId == (UserModel.loggedInUser?.id ?? '');
 
     return Scaffold(
@@ -60,14 +63,18 @@ class _EventDetailsState extends State<EventDetails> {
                   child: IconButton(
                     onPressed: () async {
                       final nav = Navigator.of(context);
-                      await FirebaseServices.deleteEvent(event);
-                      Fluttertoast.showToast(
-                        msg: "Event Deleted Successfully",
-                        backgroundColor: Colors.green,
-                        textColor: Colors.white,
-                        fontSize: 16.0,
-                      );
-                      if (mounted) nav.pop();
+                      bool success =
+                          await eventFormViewModel.deleteEvent(event);
+                      if (!mounted) return;
+                      if (success) {
+                        Fluttertoast.showToast(
+                          msg: "Event Deleted Successfully",
+                          backgroundColor: Colors.green,
+                          textColor: Colors.white,
+                          fontSize: 16.0,
+                        );
+                        nav.pop();
+                      }
                     },
                     style: IconButton.styleFrom(
                       foregroundColor: Colors.red,

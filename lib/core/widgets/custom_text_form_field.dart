@@ -10,6 +10,7 @@ class CustomTextFormField extends StatefulWidget {
     this.controller,
     this.validator,
     this.lines = 1,
+    this.focusNode,
   });
 
   final String hintText;
@@ -19,6 +20,7 @@ class CustomTextFormField extends StatefulWidget {
   final String? Function(String?)? validator;
   final bool isObscured;
   final int lines;
+  final FocusNode? focusNode;
 
   @override
   State<CustomTextFormField> createState() => _CustomTextFormFieldState();
@@ -47,6 +49,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      focusNode: widget.focusNode,
       maxLines: widget.lines,
       obscureText: isObscured,
       obscuringCharacter: '*',

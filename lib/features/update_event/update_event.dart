@@ -1,10 +1,11 @@
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
 import 'package:evently_app_abbas/core/widgets/custom_tab_bar.dart';
 import 'package:evently_app_abbas/core/widgets/custom_text_form_field.dart';
-import 'package:evently_app_abbas/firebase_services/firebase_services.dart';
 import 'package:evently_app_abbas/models/category_model.dart';
+import 'package:evently_app_abbas/view_models/event_form_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/extensions/date_time_ex.dart';
 import '../../core/widgets/custom_elevted_button.dart';
@@ -20,31 +21,30 @@ class UpdateEvent extends StatefulWidget {
 }
 
 class _UpdateEventState extends State<UpdateEvent> {
-  DateTime currentDateTime = DateTime.now();
-  TimeOfDay currentTime = TimeOfDay.now();
   late TextEditingController titleController;
   late TextEditingController descriptionController;
-  CategoryModel selectedCategory = CategoryModel.categories.first;
-  bool isInitialized = false;
+  late FocusNode titleFocusNode;
+  late FocusNode descriptionFocusNode;
 
   @override
   void initState() {
     super.initState();
     titleController = TextEditingController();
     descriptionController = TextEditingController();
+    titleFocusNode = FocusNode();
+    descriptionFocusNode = FocusNode();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!isInitialized) {
-      final event = ModalRoute.of(context)!.settings.arguments as EventModel;
+    final event = ModalRoute.of(context)!.settings.arguments as EventModel;
+    EventFormViewModel eventFormViewModel =
+        Provider.of<EventFormViewModel>(context, listen: false);
+    if (!eventFormViewModel.isInitialized) {
       titleController.text = event.title;
       descriptionController.text = event.description;
-      selectedCategory = event.category;
-      currentDateTime = event.dateTime;
-      currentTime = TimeOfDay.fromDateTime(event.dateTime);
-      isInitialized = true;
+      eventFormViewModel.initForUpdate(event);
     }
   }
 
@@ -52,157 +52,171 @@ class _UpdateEventState extends State<UpdateEvent> {
   void dispose() {
     titleController.dispose();
     descriptionController.dispose();
+    titleFocusNode.dispose();
+    descriptionFocusNode.dispose();
     super.dispose();
+  }
+
+  void _unfocusAll() {
+    titleFocusNode.unfocus();
+    descriptionFocusNode.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   @override
   Widget build(BuildContext context) {
     final event = ModalRoute.of(context)!.settings.arguments as EventModel;
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.editEvent)),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: ColorsManager.grey, width: 2),
+    EventFormViewModel eventFormViewModel = Provider.of<EventFormViewModel>(context);
+
+    return GestureDetector(
+      onTap: _unfocusAll,
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(title: Text(AppLocalizations.of(context)!.editEvent)),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: ColorsManager.grey, width: 2),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  clipBehavior: Clip.hardEdge,
+                  child: Image.asset(eventFormViewModel.selectedCategory.image),
+                ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                clipBehavior: Clip.hardEdge,
-                child: Image.asset(selectedCategory.image),
+              const SizedBox(height: 16),
+              CustomTabBar(
+                categories: CategoryModel.categories,
+                initialCategory: eventFormViewModel.selectedCategory,
+                selectedBgColor: ColorsManager.darkBlue,
+                selectedFgColor: ColorsManager.white,
+                unSelectedBgColor: ColorsManager.white,
+                unSelectedFgColor: ColorsManager.black,
+                onSelectedCategoryClicked: (category) {
+                  _unfocusAll();
+                  eventFormViewModel.selectCategory(category);
+                },
               ),
-            ),
-            const SizedBox(height: 16),
-            CustomTabBar(
-              categories: CategoryModel.categories,
-              initialCategory: selectedCategory,
-              selectedBgColor: ColorsManager.darkBlue,
-              selectedFgColor: ColorsManager.white,
-              unSelectedBgColor: ColorsManager.white,
-              unSelectedFgColor: ColorsManager.black,
-              onSelectedCategoryClicked: (category) {
-                setState(() {
-                  selectedCategory = category;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context)!.title,
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 8),
-            CustomTextFormField(
-              hintText: AppLocalizations.of(context)!.eventTitle,
-              controller: titleController,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context)!.description,
-              style: Theme.of(context).textTheme.displaySmall,
-            ),
-            const SizedBox(height: 8),
-            CustomTextFormField(
-              hintText: AppLocalizations.of(context)!.eventDescription,
-              lines: 4,
-              controller: descriptionController,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(Icons.date_range_outlined),
-                const SizedBox(width: 8),
-                Text(
-                  currentDateTime.toFormattedDate,
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-                const Spacer(),
-                CustomTextButton(
-                  text: AppLocalizations.of(context)!.chooseDate,
-                  onTap: _chooseEventDate,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(Icons.access_time),
-                const SizedBox(width: 8),
-                Text(
-                  currentDateTime.toFormattedTime,
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-                const Spacer(),
-                CustomTextButton(
-                  text: AppLocalizations.of(context)!.chooseTime,
-                  onTap: _chooseEventTime,
-                ),
-              ],
-            ),
-            const Spacer(),
-            CustomElevatedButton(
-              title: AppLocalizations.of(context)!.updateEvent,
-              onPress: () async {
-                final nav = Navigator.of(context);
-                event.title = titleController.text;
-                event.description = descriptionController.text;
-                event.category = selectedCategory;
-                event.dateTime = currentDateTime;
-                await FirebaseServices.updateEvent(event);
-                Fluttertoast.showToast(
-                  msg: 'Event updated successfully',
-                  gravity: ToastGravity.BOTTOM,
-                  backgroundColor: Colors.grey,
-                  textColor: Colors.white,
-                  fontSize: 16,
-                );
-                if (!mounted) return;
-                nav.pop();
-              },
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context)!.title,
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              const SizedBox(height: 8),
+              CustomTextFormField(
+                hintText: AppLocalizations.of(context)!.eventTitle,
+                controller: titleController,
+                focusNode: titleFocusNode,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context)!.description,
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              const SizedBox(height: 8),
+              CustomTextFormField(
+                hintText: AppLocalizations.of(context)!.eventDescription,
+                lines: 4,
+                controller: descriptionController,
+                focusNode: descriptionFocusNode,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Icons.date_range_outlined),
+                  const SizedBox(width: 8),
+                  Text(
+                    eventFormViewModel.currentDateTime.toFormattedDate,
+                    style: Theme.of(context).textTheme.displaySmall,
+                  ),
+                  const Spacer(),
+                  CustomTextButton(
+                    text: AppLocalizations.of(context)!.chooseDate,
+                    onTap: () => _chooseEventDate(eventFormViewModel),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Icons.access_time),
+                  const SizedBox(width: 8),
+                  Text(
+                    eventFormViewModel.currentDateTime.toFormattedTime,
+                    style: Theme.of(context).textTheme.displaySmall,
+                  ),
+                  const Spacer(),
+                  CustomTextButton(
+                    text: AppLocalizations.of(context)!.chooseTime,
+                    onTap: () => _chooseEventTime(eventFormViewModel),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              eventFormViewModel.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : CustomElevatedButton(
+                      title: AppLocalizations.of(context)!.updateEvent,
+                      onPress: () => _updateEvent(eventFormViewModel, event),
+                    ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _chooseEventDate() async {
+  void _chooseEventDate(EventFormViewModel viewModel) async {
+    _unfocusAll();
     DateTime? pickedDate = await showDatePicker(
       context: context,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      initialDate: currentDateTime,
+      initialDate: viewModel.currentDateTime,
     );
+    _unfocusAll();
 
     if (pickedDate != null) {
-      setState(() {
-        currentDateTime = pickedDate.copyWith(
-          hour: currentTime.hour,
-          minute: currentTime.minute,
-        );
-      });
+      viewModel.setDate(pickedDate);
     }
   }
 
-  void _chooseEventTime() async {
+  void _chooseEventTime(EventFormViewModel viewModel) async {
+    _unfocusAll();
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: currentTime,
+      initialTime: viewModel.currentTime,
     );
+    _unfocusAll();
 
     if (pickedTime != null) {
-      setState(() {
-        currentTime = pickedTime;
-        currentDateTime = currentDateTime.copyWith(
-          hour: currentTime.hour,
-          minute: currentTime.minute,
-        );
-      });
+      viewModel.setTime(pickedTime);
+    }
+  }
+
+  void _updateEvent(EventFormViewModel viewModel, EventModel event) async {
+    _unfocusAll();
+    final nav = Navigator.of(context);
+    bool success = await viewModel.updateEvent(
+      originalEvent: event,
+      title: titleController.text,
+      description: descriptionController.text,
+    );
+    if (!mounted) return;
+    if (success) {
+      Fluttertoast.showToast(
+        msg: 'Event updated successfully',
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+        fontSize: 16,
+      );
+      nav.pop();
     }
   }
 }

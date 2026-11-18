@@ -1,19 +1,15 @@
+import 'package:evently_app_abbas/core/sources/assets_manager.dart';
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
 import 'package:evently_app_abbas/core/sources/routes_manager.dart';
 import 'package:evently_app_abbas/core/sources/validator.dart';
 import 'package:evently_app_abbas/core/widgets/custom_elevted_button.dart';
 import 'package:evently_app_abbas/core/widgets/custom_text_form_field.dart';
 import 'package:evently_app_abbas/core/widgets/cutom_text_button.dart';
-import 'package:evently_app_abbas/firebase_services/firebase_services.dart';
 import 'package:evently_app_abbas/l10n/app_localizations.dart';
-import 'package:evently_app_abbas/models/user_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:evently_app_abbas/view_models/auth_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-
-import '../../../core/sources/assets_manager.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   late TextEditingController emailController;
   late TextEditingController passwordController;
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +39,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AuthViewModel authViewModel = Provider.of<AuthViewModel>(context);
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -60,34 +59,35 @@ class _LoginScreenState extends State<LoginScreen> {
                     AppLocalizations.of(context)!.loginToYourAccount,
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   CustomTextFormField(
                     validator: Validator.validateEmail,
                     controller: emailController,
                     hintText: AppLocalizations.of(context)!.enterYourEmail,
-                    prefixIcon: Icon(Icons.email),
+                    prefixIcon: const Icon(Icons.email),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   CustomTextFormField(
                     validator: Validator.validatePassword,
                     controller: passwordController,
                     isObscured: true,
                     hintText: AppLocalizations.of(context)!.enterYourPassword,
-                    prefixIcon: Icon(Icons.lock),
-
+                    prefixIcon: const Icon(Icons.lock),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   CustomTextButton(
                     text: AppLocalizations.of(context)!.forgetPassword,
                     textAlign: TextAlign.end,
                     onTap: () {},
                   ),
-                  SizedBox(height: 52),
-                  CustomElevatedButton(
-                    title: AppLocalizations.of(context)!.login,
-                    onPress: login,
-                  ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 52),
+                  authViewModel.status == AuthStatus.loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : CustomElevatedButton(
+                          title: AppLocalizations.of(context)!.login,
+                          onPress: () => login(authViewModel),
+                        ),
+                  const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -95,7 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         AppLocalizations.of(context)!.alreadyHaveAnAccount,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-              
                       CustomTextButton(
                         text: AppLocalizations.of(context)!.signUp,
                         onTap: () {
@@ -107,25 +106,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   OutlinedButton(
-                    onPressed: () {
-                      _loginWithGoogle();
-                    },
+                    onPressed: () => _loginWithGoogle(authViewModel),
                     style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: ColorsManager.darkBlue),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: EdgeInsets.all(10),
-              
+                      side: const BorderSide(color: ColorsManager.darkBlue),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.all(10),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(ImageAssets.googleDark),
-                        SizedBox(width: 24),
-                        Text("Login With Google", style: TextStyle(color: ColorsManager.blue),),
+                        const SizedBox(width: 24),
+                        const Text(
+                          "Login With Google",
+                          style: TextStyle(color: ColorsManager.blue),
+                        ),
                       ],
                     ),
                   ),
@@ -147,90 +146,30 @@ class _LoginScreenState extends State<LoginScreen> {
       fontSize: 16,
     );
   }
-  void login() async {
+
+  void login(AuthViewModel authViewModel) async {
     if (formKey.currentState!.validate() == false) return;
-    try {
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text,
-      );
-      UserModel user = await FirebaseServices.getCurrentUser(userCredential.user!.uid);
-      UserModel.loggedInUser = user;
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, RoutesManager.mainLayout);
+    bool success = await authViewModel.login(
+      emailController.text.trim(),
+      passwordController.text,
+    );
+    if (!mounted) return;
+    if (success) {
       _showToast('Login successful.');
-    } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'invalid-credential':
-        case 'user-not-found':
-        case 'wrong-password':
-          _showToast('Wrong email or password.');
-          break;
-        case 'user-disabled':
-          _showToast('This account has been disabled.');
-          break;
-        case 'too-many-requests':
-          _showToast('Too many attempts. Try again later.');
-          break;
-        case 'network-request-failed':
-          _showToast('Network error. Check your connection.');
-          break;
-        default:
-          _showToast('Login failed. Please try again.');
-      }
+      Navigator.pushReplacementNamed(context, RoutesManager.mainLayout);
+    } else if (authViewModel.errorMessage != null) {
+      _showToast(authViewModel.errorMessage!);
     }
   }
-  Future<UserCredential?> _loginWithGoogle() async {
-    try {
-      await GoogleSignIn.instance.initialize(
-        serverClientId:
-        '249340315739-m3ff47n74k3da51lumklbin7vgeg5bjc.apps.googleusercontent.com',
-      );
-      final GoogleSignInAccount googleUser =
-      await GoogleSignIn.instance.authenticate();
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-      );
 
-      final userCredential =
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      UserModel user = await FirebaseServices.getCurrentUser(userCredential.user!.uid);
-      UserModel.loggedInUser = user;
-      if (!mounted) return userCredential;
+  void _loginWithGoogle(AuthViewModel authViewModel) async {
+    bool success = await authViewModel.loginWithGoogle();
+    if (!mounted) return;
+    if (success) {
       _showToast('Logged in successfully');
       Navigator.pushReplacementNamed(context, RoutesManager.mainLayout);
-      return userCredential;
-    } on GoogleSignInException catch (e) {
-      switch (e.code) {
-        case GoogleSignInExceptionCode.canceled:
-          _showToast('Sign-in cancelled');
-          break;
-        default:
-          _showToast('Google sign-in failed. Please try again.');
-      }
-      return null;
-    } on FirebaseAuthException catch (e) {
-      switch (e.code) {
-        case 'account-exists-with-different-credential':
-          _showToast('An account already exists with a different sign-in method.');
-          break;
-        case 'invalid-credential':
-          _showToast('The Google credential is invalid or expired.');
-          break;
-        case 'user-disabled':
-          _showToast('This account has been disabled.');
-          break;
-        case 'network-request-failed':
-          _showToast('Network error. Check your connection.');
-          break;
-        default:
-          _showToast('Sign-in failed. Please try again.');
-      }
-      return null;
-    } catch (e) {
-      _showToast('Something went wrong. Please try again.');
-      return null;
+    } else if (authViewModel.errorMessage != null) {
+      _showToast(authViewModel.errorMessage!);
     }
   }
 }

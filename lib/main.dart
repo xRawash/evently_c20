@@ -1,9 +1,11 @@
 import 'package:evently_app_abbas/config/theme/theme_manager.dart';
+import 'package:evently_app_abbas/core/di/dependency_injection.dart';
 import 'package:evently_app_abbas/core/sources/routes_manager.dart';
-import 'package:evently_app_abbas/features/auth/login/login_screen.dart';
-import 'package:evently_app_abbas/features/auth/register/register_screen.dart';
-import 'package:evently_app_abbas/firebase_services/firebase_services.dart';
 import 'package:evently_app_abbas/models/user_model.dart';
+import 'package:evently_app_abbas/view_models/auth_view_model.dart';
+import 'package:evently_app_abbas/view_models/event_form_view_model.dart';
+import 'package:evently_app_abbas/view_models/fav_view_model.dart';
+import 'package:evently_app_abbas/view_models/home_view_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -17,12 +19,30 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await PrefsManager.init();
-  if(FirebaseAuth.instance.currentUser != null) {
-    UserModel.loggedInUser = await FirebaseServices.getCurrentUser(FirebaseAuth.instance.currentUser!.uid);
+
+  final authRepo = DependencyInjection.provideAuthRepository();
+  final eventRepo = DependencyInjection.provideEventRepository();
+
+  if (FirebaseAuth.instance.currentUser != null) {
+    try {
+      UserModel.loggedInUser = await authRepo
+          .getCurrentUser(FirebaseAuth.instance.currentUser!.uid);
+    } catch (_) {}
   }
+
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ConfigProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ConfigProvider()),
+        ChangeNotifierProvider(
+            create: (_) => AuthViewModel(authRepository: authRepo)),
+        ChangeNotifierProvider(
+            create: (_) => HomeViewModel(eventRepository: eventRepo)),
+        ChangeNotifierProvider(
+            create: (_) => FavViewModel(eventRepository: eventRepo)),
+        ChangeNotifierProvider(
+            create: (_) => EventFormViewModel(eventRepository: eventRepo)),
+      ],
       child: const Evently(),
     ),
   );
@@ -30,24 +50,30 @@ void main() async {
 
 class Evently extends StatelessWidget {
   const Evently({super.key});
+
   @override
   Widget build(BuildContext context) {
     final isFinishedOnBoarding = PrefsManager.getFinishedOnBoarding() ?? false;
     ConfigProvider configProvider = Provider.of<ConfigProvider>(context);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: isFinishedOnBoarding ? (FirebaseAuth.instance.currentUser != null ? RoutesManager.mainLayout : RoutesManager.register) : RoutesManager.onboarding,
+      initialRoute: isFinishedOnBoarding
+          ? (FirebaseAuth.instance.currentUser != null
+              ? RoutesManager.mainLayout
+              : RoutesManager.register)
+          : RoutesManager.onboarding,
       onGenerateRoute: RoutesManager.getRoute,
       theme: ThemeManager.light,
       darkTheme: ThemeManager.dark,
       themeMode: configProvider.currentTheme,
-      localizationsDelegates: [
+      localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [Locale('en'), Locale('ar')],
+      supportedLocales: const [Locale('en'), Locale('ar')],
       locale: Locale(configProvider.currentLang),
     );
   }

@@ -21,8 +21,6 @@ class ThemeManager {
       type: BottomNavigationBarType.fixed,
       selectedItemColor: ColorsManager.blue,
       unselectedItemColor: ColorsManager.darkGrey,
-      // showSelectedLabels: true,
-      // showUnselectedLabels: true,
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: ColorsManager.darkBlue,
@@ -159,8 +157,6 @@ class ThemeManager {
       type: BottomNavigationBarType.fixed,
       selectedItemColor: ColorsManager.blue,
       unselectedItemColor: ColorsManager.darkGrey,
-      // showSelectedLabels: true,
-      // showUnselectedLabels: true,
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: ColorsManager.blue,

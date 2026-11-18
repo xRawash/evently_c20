@@ -2,12 +2,12 @@ import 'package:evently_app_abbas/core/sources/assets_manager.dart';
 import 'package:evently_app_abbas/core/sources/colors_manager.dart';
 import 'package:evently_app_abbas/core/widgets/custom_tab_bar.dart';
 import 'package:evently_app_abbas/core/widgets/event_item.dart';
-import 'package:evently_app_abbas/firebase_services/firebase_services.dart';
 import 'package:evently_app_abbas/l10n/app_localizations.dart';
 import 'package:evently_app_abbas/models/category_model.dart';
 import 'package:evently_app_abbas/models/event_model.dart';
 import 'package:evently_app_abbas/models/user_model.dart';
 import 'package:evently_app_abbas/providers/config_provider.dart';
+import 'package:evently_app_abbas/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,19 +19,19 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  int selectedIndex = 0;
-  CategoryModel? selectedCategory;
-
   @override
   Widget build(BuildContext context) {
     ConfigProvider configProvider = Provider.of<ConfigProvider>(context);
+    HomeViewModel homeViewModel = Provider.of<HomeViewModel>(context);
+
     final allCategory = CategoryModel(
       id: "0",
       name: AppLocalizations.of(context)!.all,
       icon: Icons.all_inclusive,
       image: ImageAssets.meetingLight,
     );
-    final currentCategory = selectedCategory ?? allCategory;
+    final currentCategory = homeViewModel.selectedCategory ?? allCategory;
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -40,6 +40,7 @@ class _HomeState extends State<Home> {
             Row(
               children: [
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       AppLocalizations.of(context)!.welcomeBack,
@@ -51,7 +52,7 @@ class _HomeState extends State<Home> {
                     ),
                   ],
                 ),
-                Spacer(),
+                const Spacer(),
                 IconButton(
                   onPressed: () {
                     configProvider.changeAppTheme(
@@ -59,10 +60,10 @@ class _HomeState extends State<Home> {
                     );
                   },
                   icon: configProvider.isDark
-                      ? Icon(Icons.light_mode_rounded)
-                      : Icon(Icons.dark_mode_rounded),
+                      ? const Icon(Icons.light_mode_rounded)
+                      : const Icon(Icons.dark_mode_rounded),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -84,16 +85,15 @@ class _HomeState extends State<Home> {
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             CustomTabBar(
               categories: [
                 allCategory,
                 ...CategoryModel.categories,
               ],
-              onSelectedCategoryClicked: (category){
-                setState(() {
-                  selectedCategory = category;
-                });
+              initialCategory: currentCategory,
+              onSelectedCategoryClicked: (category) {
+                homeViewModel.selectCategory(category);
               },
               selectedBgColor: ColorsManager.darkBlue,
               selectedFgColor: ColorsManager.white,
@@ -101,21 +101,21 @@ class _HomeState extends State<Home> {
               unSelectedFgColor: ColorsManager.black,
             ),
             Expanded(
-              child: StreamBuilder(
-                stream: FirebaseServices.getEventsRealTimeFromFireStore(currentCategory),
+              child: StreamBuilder<List<EventModel>>(
+                stream: homeViewModel.getEventsStream(currentCategory),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
-                    return Center(child: Text("Something went wrong"));
+                    return const Center(child: Text("Something went wrong"));
                   }
                   List<EventModel> events = snapshot.data ?? [];
                   return ListView.separated(
-                    padding: EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.only(top: 16),
                     itemBuilder: (context, index) =>
                         EventItem(event: events[index]),
-                    separatorBuilder: (context, index) => SizedBox(height: 8),
+                    separatorBuilder: (context, index) => const SizedBox(height: 8),
                     itemCount: events.length,
                   );
                 },

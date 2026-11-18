@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evently_app_abbas/models/category_model.dart';
 import 'package:evently_app_abbas/models/event_model.dart';
 import 'package:evently_app_abbas/models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class FirebaseServices {
   static CollectionReference<Map<String, dynamic>> _getUsersCollectionReference() {
@@ -25,16 +27,68 @@ class FirebaseServices {
     return usersDoc.set(user.toJson());
   }
 
-  static Future<UserModel> getCurrentUser(String uid) async {
+  static Future<UserModel?> getCurrentUser(String uid) async {
     CollectionReference<Map<String, dynamic>> usersCollection =
         _getUsersCollectionReference();
     DocumentReference<Map<String, dynamic>> usersDocs = usersCollection.doc(
       uid,
     );
-    DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await usersDocs
-        .get();
+    DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+        await usersDocs.get();
+    if (!documentSnapshot.exists || documentSnapshot.data() == null) {
+      return null;
+    }
     Map<String, dynamic> data = documentSnapshot.data()!;
     return UserModel.fromJson(data);
+  }
+
+  static Future<UserCredential> signInWithEmailAndPassword(
+      String email, String password) async {
+    return await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  static Future<UserCredential> createUserWithEmailAndPassword(
+      String email, String password) async {
+    return await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  static Future<UserCredential?> signInWithGoogle() async {
+    await GoogleSignIn.instance.initialize(
+      serverClientId:
+          '249340315739-m3ff47n74k3da51lumklbin7vgeg5bjc.apps.googleusercontent.com',
+    );
+    final GoogleSignInAccount googleUser =
+        await GoogleSignIn.instance.authenticate();
+    final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+    final AuthCredential credential = GoogleAuthProvider.credential(
+      idToken: googleAuth.idToken,
+    );
+
+    final userCredential =
+        await FirebaseAuth.instance.signInWithCredential(credential);
+
+    UserModel? user = await getCurrentUser(userCredential.user!.uid);
+    if (user == null) {
+      user = UserModel(
+        name: googleUser.displayName ?? '',
+        id: userCredential.user!.uid,
+        email: googleUser.email,
+      );
+      await addUserToFireStore(user);
+    }
+    UserModel.loggedInUser = user;
+    return userCredential;
+  }
+
+  static Future<void> signOut() async {
+    await FirebaseAuth.instance.signOut();
+    UserModel.loggedInUser = null;
   }
 
   static Future<void> addEventToFireStore(EventModel event) async {
@@ -58,21 +112,28 @@ class FirebaseServices {
       return events;
     });
   }
+
   static Future<void> addEventToFav(EventModel event) async {
-    UserModel currentUser = UserModel.loggedInUser!;
+    UserModel? currentUser = UserModel.loggedInUser;
+    if (currentUser == null) return;
     if (!currentUser.favEvents.contains(event.id)) {
       currentUser.favEvents.add(event.id);
     }
-    CollectionReference<Map<String, dynamic>> usersCollection = _getUsersCollectionReference();
-    DocumentReference<Map<String, dynamic>> userDoc = usersCollection.doc(currentUser.id);
+    CollectionReference<Map<String, dynamic>> usersCollection =
+        _getUsersCollectionReference();
+    DocumentReference<Map<String, dynamic>> userDoc =
+        usersCollection.doc(currentUser.id);
     return userDoc.update({'favEvents': currentUser.favEvents});
   }
 
   static Future<void> removeEventFromFav(EventModel event) async {
-    UserModel currentUser = UserModel.loggedInUser!;
+    UserModel? currentUser = UserModel.loggedInUser;
+    if (currentUser == null) return;
     currentUser.favEvents.remove(event.id);
-    CollectionReference<Map<String, dynamic>> usersCollection = _getUsersCollectionReference();
-    DocumentReference<Map<String, dynamic>> userDoc = usersCollection.doc(currentUser.id);
+    CollectionReference<Map<String, dynamic>> usersCollection =
+        _getUsersCollectionReference();
+    DocumentReference<Map<String, dynamic>> userDoc =
+        usersCollection.doc(currentUser.id);
     return userDoc.update({'favEvents': currentUser.favEvents});
   }
 
@@ -91,7 +152,8 @@ class FirebaseServices {
         return;
       }
 
-      List<String> queryIds = favIds.length > 30 ? favIds.sublist(0, 30) : favIds;
+      List<String> queryIds =
+          favIds.length > 30 ? favIds.sublist(0, 30) : favIds;
       try {
         QuerySnapshot<Map<String, dynamic>> snap = await _getEventsCollectionReference()
             .where('id', whereIn: queryIds)
@@ -134,8 +196,8 @@ class FirebaseServices {
   }
 
   static Future<void> deleteEvent(EventModel event) async {
-    UserModel currentUser = UserModel.loggedInUser!;
-    if (currentUser.favEvents.contains(event.id)) {
+    UserModel? currentUser = UserModel.loggedInUser;
+    if (currentUser != null && currentUser.favEvents.contains(event.id)) {
       currentUser.favEvents.remove(event.id);
       await _getUsersCollectionReference()
           .doc(currentUser.id)
@@ -146,10 +208,12 @@ class FirebaseServices {
         _getEventsCollectionReference();
     return eventsCollection.doc(event.id).delete();
   }
+
   static Future<void> updateEvent(EventModel event) async {
     CollectionReference<Map<String, dynamic>> eventsCollection =
-    _getEventsCollectionReference();
-    DocumentReference<Map<String, dynamic>> eventsDoc = eventsCollection.doc(event.id);
+        _getEventsCollectionReference();
+    DocumentReference<Map<String, dynamic>> eventsDoc =
+        eventsCollection.doc(event.id);
     return eventsDoc.update(event.toJson());
   }
 }

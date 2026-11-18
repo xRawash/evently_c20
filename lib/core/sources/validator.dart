@@ -28,10 +28,11 @@ class Validator{
     );
     if (password == null || password.trim().isEmpty) {
       return "Sorry, required password";
-    } else if (password.length < 6) {
-      return "Sorry, Password should be at least 6 chars";
+    } else if (password.length < 8) {
+      return "Sorry, Password should be at least 8 chars";
     } else if (!passwordExp.hasMatch(password)) {
       return "Weak Password";
     }
+    return null;
   }
 }

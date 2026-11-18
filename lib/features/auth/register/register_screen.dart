@@ -30,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   late TextEditingController passwordConfirmationController;
 
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
